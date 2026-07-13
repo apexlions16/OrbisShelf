@@ -1,7 +1,8 @@
 #pragma once
 
-#include <orbis/Bgft.h>
+#include <stddef.h>
 #include <stdint.h>
+#include <orbis/Bgft.h>
 #include <string>
 
 namespace orbisshelf {
