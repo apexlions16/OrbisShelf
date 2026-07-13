@@ -24,11 +24,13 @@ public:
                   int32_t& install_error, std::string& error);
 
 private:
+    bool load_system_modules(std::string& error, int32_t& error_code);
     bool initialize_app_inst_util(std::string& error, int32_t& error_code);
 
     void* bgft_heap_;
     bool bgft_initialized_;
     bool app_inst_initialized_;
+    bool modules_loaded_;
     int32_t user_id_;
 };
 

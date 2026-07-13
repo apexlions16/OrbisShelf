@@ -2,6 +2,7 @@
 
 #include <orbis/AppInstUtil.h>
 #include <orbis/Bgft.h>
+#include <orbis/Sysmodule.h>
 #include <orbis/UserService.h>
 
 #include <cstdlib>
@@ -11,6 +12,24 @@
 namespace orbisshelf {
 namespace {
 const size_t kBgftHeapSize = 1024 * 1024;
+
+// libSceAppInstUtil and libSceBgft are privileged system modules that are not
+// auto-loaded for homebrew even when their stub libraries are linked. They must
+// be loaded explicitly, and only after the modules they depend on (SysCore and
+// SystemService) are resident; loading AppInstUtil on its own fails with
+// ENOEXEC (0x80020008) because its imports cannot be resolved. The order below
+// mirrors the known-working sequence in flatz's ps4_remote_pkg_installer.
+struct InternalModule {
+    OrbisSysModuleInternal id;
+    const char* label;
+};
+const InternalModule kRequiredModules[] = {
+    {ORBIS_SYSMODULE_INTERNAL_SYSCORE, "SYSCORE"},
+    {ORBIS_SYSMODULE_INTERNAL_SYSTEM_SERVICE, "SYSTEM_SERVICE"},
+    {ORBIS_SYSMODULE_INTERNAL_USER_SERVICE, "USER_SERVICE"},
+    {ORBIS_SYSMODULE_INTERNAL_APP_INST_UTIL, "APP_INST_UTIL"},
+    {ORBIS_SYSMODULE_INTERNAL_BGFT, "BGFT"},
+};
 
 std::string code_message(const char* operation, int32_t code) {
     std::ostringstream out;
@@ -24,13 +43,32 @@ std::string code_message(const char* operation, int32_t code) {
 } // namespace
 
 PackageInstaller::PackageInstaller()
-    : bgft_heap_(0), bgft_initialized_(false), app_inst_initialized_(false), user_id_(0) {}
+    : bgft_heap_(0), bgft_initialized_(false), app_inst_initialized_(false),
+      modules_loaded_(false), user_id_(0) {}
 
 PackageInstaller::~PackageInstaller() { shutdown(); }
+
+bool PackageInstaller::load_system_modules(std::string& error, int32_t& error_code) {
+    if (modules_loaded_) return true;
+
+    for (size_t i = 0; i < sizeof(kRequiredModules) / sizeof(kRequiredModules[0]); ++i) {
+        const int32_t result =
+            static_cast<int32_t>(sceSysmoduleLoadModuleInternal(kRequiredModules[i].id));
+        if (result != 0) {
+            error_code = result;
+            error = std::string("MODULE LOAD ") + kRequiredModules[i].label;
+            return false;
+        }
+    }
+
+    modules_loaded_ = true;
+    return true;
+}
 
 bool PackageInstaller::initialize_app_inst_util(std::string& error, int32_t& error_code) {
     error_code = 0;
     if (app_inst_initialized_) return true;
+    if (!load_system_modules(error, error_code)) return false;
 
     const int32_t result = sceAppInstUtilInitialize();
     if (result != 0) {
