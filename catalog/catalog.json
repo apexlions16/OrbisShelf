@@ -78,13 +78,13 @@
       "id": "cuphead-extra-file",
       "name": "Cuphead Ek Dosya",
       "title_id": "CUSA20499",
-      "type": "extra",
+      "type": "app",
       "version": "1.00",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/3.4.pkg",
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "Cuphead için ek dosya paketi."
+      "notes": "Cuphead için ek uygulama veya ek dosya paketi."
     }
   ]
 }
