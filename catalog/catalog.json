@@ -17,7 +17,7 @@
     {
       "id": "sonic-mania",
       "name": "Sonic Mania",
-      "title_id": "PUCA00002",
+      "title_id": "",
       "type": "game",
       "version": "1.00",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/2.pkg",
@@ -27,18 +27,16 @@
       "notes": "Sonic Mania ana oyun PKG kaydı."
     },
     {
-      "id": "sonic-mania-update-1.01",
+      "id": "sonic-mania-update-1-01",
       "name": "Sonic Mania Update 1.01",
-      "title_id": "PUCA00003",
+      "title_id": "",
       "type": "update",
       "version": "1.01",
-      "base_game_id": "sonic-mania",
-      "required_game_version": "1.00",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/2.1.pkg",
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "Sonic Mania için 1.01 güncellemesi."
+      "notes": "Sonic Mania ana oyunu için 1.01 güncellemesi."
     }
   ]
 }
