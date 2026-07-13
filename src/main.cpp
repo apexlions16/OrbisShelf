@@ -27,6 +27,9 @@ const char* kBundledCatalog = "/app0/catalog.json";
 const char* kCachedCatalog = "/data/OrbisShelf/catalog.json";
 const char* kTokenPath = "/data/OrbisShelf/hf_token.txt";
 const char* kDownloadDirectory = "/data/OrbisShelf/downloads";
+const char* kInstallStagePath = "/data/OrbisShelf/install_stage.txt";
+
+enum ProgressMode { ProgressNone, ProgressDownload, ProgressInstall };
 
 struct SharedState {
     pthread_mutex_t mutex;
@@ -35,9 +38,16 @@ struct SharedState {
     std::string status;
     uint64_t current;
     uint64_t total;
+    uint64_t bytes_per_second;
+    uint64_t speed_sample_bytes;
+    uint64_t speed_sample_time_us;
+    ProgressMode progress_mode;
     int32_t last_error_code;
 
-    SharedState() : job_running(false), status("STARTING"), current(0), total(0), last_error_code(0) {
+    SharedState()
+        : job_running(false), status("STARTING"), current(0), total(0),
+          bytes_per_second(0), speed_sample_bytes(0), speed_sample_time_us(0),
+          progress_mode(ProgressNone), last_error_code(0) {
         pthread_mutex_init(&mutex, 0);
     }
     ~SharedState() { pthread_mutex_destroy(&mutex); }
@@ -51,9 +61,18 @@ struct JobArgs {
     CatalogItem item;
 };
 
+orbisshelf::PackageInstaller g_installer;
+
 void ensure_directories() {
     mkdir("/data/OrbisShelf", 0777);
     mkdir(kDownloadDirectory, 0777);
+}
+
+void write_stage(const char* stage) {
+    FILE* file = std::fopen(kInstallStagePath, "wb");
+    if (!file) return;
+    std::fprintf(file, "%s\n", stage);
+    std::fclose(file);
 }
 
 std::string trim(std::string value) {
@@ -69,20 +88,58 @@ std::string optional_hf_token() {
     return trim(value);
 }
 
+void reset_progress_locked(SharedState* state, ProgressMode mode) {
+    state->current = 0;
+    state->total = 0;
+    state->bytes_per_second = 0;
+    state->speed_sample_bytes = 0;
+    state->speed_sample_time_us = sceKernelGetProcessTime();
+    state->progress_mode = mode;
+}
+
+void begin_phase(SharedState* state, const std::string& status, ProgressMode mode) {
+    pthread_mutex_lock(&state->mutex);
+    state->status = status;
+    state->job_running = true;
+    state->last_error_code = 0;
+    reset_progress_locked(state, mode);
+    pthread_mutex_unlock(&state->mutex);
+}
+
 void set_status(SharedState* state, const std::string& status, bool running, int32_t error_code = 0) {
     pthread_mutex_lock(&state->mutex);
     state->status = status;
     state->job_running = running;
     state->last_error_code = error_code;
-    if (!running) { state->current = 0; state->total = 0; }
+    if (!running) reset_progress_locked(state, ProgressNone);
     pthread_mutex_unlock(&state->mutex);
 }
 
 void progress_callback(uint64_t current, uint64_t total, void* user) {
     SharedState* state = static_cast<SharedState*>(user);
+    const uint64_t now_us = sceKernelGetProcessTime();
+
     pthread_mutex_lock(&state->mutex);
     state->current = current;
     state->total = total;
+
+    if (state->progress_mode == ProgressDownload) {
+        if (state->speed_sample_time_us == 0 || current < state->speed_sample_bytes) {
+            state->speed_sample_time_us = now_us;
+            state->speed_sample_bytes = current;
+        } else {
+            const uint64_t elapsed_us = now_us - state->speed_sample_time_us;
+            if (elapsed_us >= 500000) {
+                const uint64_t delta = current - state->speed_sample_bytes;
+                const uint64_t instant = elapsed_us ? (delta * 1000000ULL) / elapsed_us : 0;
+                state->bytes_per_second = state->bytes_per_second == 0
+                    ? instant
+                    : (state->bytes_per_second * 3ULL + instant) / 4ULL;
+                state->speed_sample_time_us = now_us;
+                state->speed_sample_bytes = current;
+            }
+        }
+    }
     pthread_mutex_unlock(&state->mutex);
 }
 
@@ -105,6 +162,12 @@ std::string human_bytes(uint64_t bytes) {
     return out.str();
 }
 
+int progress_percent(uint64_t current, uint64_t total) {
+    if (total == 0) return 0;
+    const double ratio = static_cast<double>(current) / static_cast<double>(total);
+    return std::max(0, std::min(100, static_cast<int>(ratio * 100.0 + 0.5)));
+}
+
 void* job_main(void* raw) {
     JobArgs* args = static_cast<JobArgs*>(raw);
     SharedState* state = args->state;
@@ -120,7 +183,7 @@ void* job_main(void* raw) {
     }
 
     if (type == JobRefresh) {
-        set_status(state, "REFRESHING CATALOG", true);
+        begin_phase(state, "REFRESHING CATALOG", ProgressNone);
         std::string json;
         if (!http.get_text(kCatalogUrl, 2 * 1024 * 1024, json, error)) {
             set_status(state, "CATALOG REFRESH FAILED: " + error, false);
@@ -136,12 +199,13 @@ void* job_main(void* raw) {
         state->items.swap(parsed);
         state->status = "CATALOG UPDATED";
         state->job_running = false;
-        state->current = state->total = 0;
+        state->last_error_code = 0;
+        reset_progress_locked(state, ProgressNone);
         pthread_mutex_unlock(&state->mutex);
         return 0;
     }
 
-    set_status(state, "DOWNLOADING " + item.name, true);
+    begin_phase(state, "DOWNLOADING " + item.name, ProgressDownload);
     const std::string pkg_path = std::string(kDownloadDirectory) + "/" + item.id + "-" + item.version + ".pkg";
     uint64_t downloaded = 0;
     const std::string token = optional_hf_token();
@@ -149,13 +213,15 @@ void* job_main(void* raw) {
         set_status(state, "DOWNLOAD FAILED: " + error, false);
         return 0;
     }
+    write_stage("download complete and file closed");
+
     if (item.size_bytes && downloaded != item.size_bytes) {
         remove(pkg_path.c_str());
         set_status(state, "SIZE CHECK FAILED", false);
         return 0;
     }
     if (!item.sha256.empty()) {
-        set_status(state, "VERIFYING SHA256", true);
+        begin_phase(state, "VERIFYING SHA256", ProgressNone);
         std::string digest;
         if (!orbisshelf::sha256_file(pkg_path.c_str(), digest, error) || digest != item.sha256) {
             remove(pkg_path.c_str());
@@ -164,20 +230,20 @@ void* job_main(void* raw) {
         }
     }
 
-    set_status(state, "REGISTERING INSTALL TASK", true);
-    orbisshelf::PackageInstaller installer;
+    begin_phase(state, "STARTING PS4 INSTALL TASK", ProgressNone);
+    write_stage("before installer enqueue");
     int32_t error_code = 0;
     int32_t task_id = -1;
-    if (!installer.enqueue(pkg_path.c_str(), item.name, task_id, error, error_code)) {
+    if (!g_installer.enqueue(pkg_path.c_str(), item.name, task_id, error, error_code)) {
         set_status(state, "INSTALL START FAILED: " + error, false, error_code);
         return 0;
     }
 
-    set_status(state, "INSTALLING " + item.name, true);
+    begin_phase(state, "INSTALLING " + item.name, ProgressInstall);
     for (;;) {
         uint64_t transferred = 0, total = 0;
         int32_t install_error = 0;
-        if (!installer.progress(task_id, transferred, total, install_error, error)) {
+        if (!g_installer.progress(task_id, transferred, total, install_error, error)) {
             set_status(state, "INSTALL STATUS FAILED: " + error, false);
             return 0;
         }
@@ -187,9 +253,10 @@ void* job_main(void* raw) {
             return 0;
         }
         if (total > 0 && transferred >= total) break;
-        sceKernelUsleep(500000);
+        sceKernelUsleep(250000);
     }
-    remove(pkg_path.c_str());
+
+    write_stage("install progress reached 100 percent; PKG retained");
     set_status(state, "INSTALL COMPLETE: " + item.name, false);
     return 0;
 }
@@ -198,8 +265,9 @@ bool start_job(SharedState& state, JobType type, const CatalogItem* item) {
     pthread_mutex_lock(&state.mutex);
     if (state.job_running) { pthread_mutex_unlock(&state.mutex); return false; }
     state.job_running = true;
-    state.current = state.total = 0;
     state.status = type == JobRefresh ? "STARTING CATALOG REFRESH" : "STARTING DOWNLOAD";
+    state.last_error_code = 0;
+    reset_progress_locked(&state, ProgressNone);
     pthread_mutex_unlock(&state.mutex);
 
     JobArgs* args = new JobArgs;
@@ -255,13 +323,16 @@ void render(SDL_Renderer* renderer, SharedState& state, int selected) {
 
     std::vector<CatalogItem> items;
     std::string status;
-    uint64_t current = 0, total = 0;
+    uint64_t current = 0, total = 0, speed = 0;
+    ProgressMode progress_mode = ProgressNone;
     int32_t error_code = 0;
     pthread_mutex_lock(&state.mutex);
     items = state.items;
     status = state.status;
     current = state.current;
     total = state.total;
+    speed = state.bytes_per_second;
+    progress_mode = state.progress_mode;
     error_code = state.last_error_code;
     pthread_mutex_unlock(&state.mutex);
 
@@ -295,12 +366,23 @@ void render(SDL_Renderer* renderer, SharedState& state, int selected) {
     if (current || total) {
         const int bar_x = 70, bar_y = 1025, bar_w = 1780, bar_h = 20;
         fill(renderer, bar_x, bar_y, bar_w, bar_h, background);
-        int filled = 0;
-        if (total) filled = static_cast<int>((static_cast<double>(current) / static_cast<double>(total)) * bar_w);
+        const int percent = progress_percent(current, total);
+        const int filled = total ? static_cast<int>((static_cast<double>(current) / static_cast<double>(total)) * bar_w) : 0;
         fill(renderer, bar_x, bar_y, std::max(4, std::min(bar_w, filled)), bar_h, accent);
-        std::string progress = human_bytes(current);
-        if (total) progress += " / " + human_bytes(total);
-        orbisshelf::draw_text(renderer, 1430, 995, 3, progress, muted);
+
+        std::ostringstream percent_text;
+        percent_text << percent << "%";
+        orbisshelf::draw_text(renderer, 70, 995, 3, percent_text.str(), muted);
+
+        std::string details;
+        if (progress_mode == ProgressDownload) {
+            details = human_bytes(current);
+            if (total) details += " / " + human_bytes(total);
+            if (speed) details += "   " + human_bytes(speed) + "/S";
+        } else if (progress_mode == ProgressInstall) {
+            details = "PS4 INSTALL " + percent_text.str();
+        }
+        orbisshelf::draw_text(renderer, 1250, 995, 3, truncate_text(details, 50), muted);
     }
 }
 
