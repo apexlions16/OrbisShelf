@@ -1,18 +1,5 @@
 {
   "schema_version": 1,
   "generated_at": "2026-07-13T00:00:00Z",
-  "items": [
-    {
-      "id": "pt",
-      "name": "P.T.",
-      "title_id": "CUSA01127",
-      "type": "game",
-      "version": "1.00",
-      "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/1.pkg",
-      "sha256": "",
-      "size_bytes": 0,
-      "enabled": true,
-      "notes": "Alanlari kendi dagitim izniniz olan PKG bilgileriyle degistirin ve enabled degerini true yapin."
-    }
-  ]
+  "items": []
 }
