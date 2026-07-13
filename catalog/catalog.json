@@ -1,5 +1,18 @@
 {
   "schema_version": 1,
   "generated_at": "2026-07-13T00:00:00Z",
-  "items": []
+  "items": [
+    {
+      "id": "ornek-oyun",
+      "name": "ORNEK OYUN",
+      "title_id": "BREW00001",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/KULLANICI/DEPO/resolve/main/oyun.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": false,
+      "notes": "Alanlari kendi dagitim izniniz olan PKG bilgileriyle degistirin ve enabled degerini true yapin."
+    }
+  ]
 }
