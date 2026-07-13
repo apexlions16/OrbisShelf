@@ -2,9 +2,10 @@
 
 #include <orbis/AppInstUtil.h>
 #include <orbis/Bgft.h>
-#include <orbis/Sysmodule.h>
 #include <orbis/UserService.h>
+#include <orbis/libkernel.h>
 
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <sstream>
@@ -14,22 +15,46 @@ namespace {
 const size_t kBgftHeapSize = 1024 * 1024;
 
 // libSceAppInstUtil and libSceBgft are privileged system modules that are not
-// auto-loaded for homebrew even when their stub libraries are linked. They must
-// be loaded explicitly, and only after the modules they depend on (SysCore and
-// SystemService) are resident; loading AppInstUtil on its own fails with
-// ENOEXEC (0x80020008) because its imports cannot be resolved. The order below
-// mirrors the known-working sequence in flatz's ps4_remote_pkg_installer.
-struct InternalModule {
-    OrbisSysModuleInternal id;
+// auto-loaded for homebrew even when their stub libraries are linked. Under a
+// HEN/GoldHEN environment they must be brought in with sceKernelLoadStartModule,
+// NOT through sceSysmoduleLoadModuleInternal, which enforces an authority check
+// that a homebrew process fails with ENOEXEC (0x80020008). SystemService must
+// load before AppInstUtil so AppInstUtil's imports resolve; otherwise the load
+// fails with ENOENT (0x80020002). This ordered set matches the known-working
+// sequence in barisyild/airpsx.
+struct RequiredModule {
+    const char* name;
     const char* label;
 };
-const InternalModule kRequiredModules[] = {
-    {ORBIS_SYSMODULE_INTERNAL_SYSCORE, "SYSCORE"},
-    {ORBIS_SYSMODULE_INTERNAL_SYSTEM_SERVICE, "SYSTEM_SERVICE"},
-    {ORBIS_SYSMODULE_INTERNAL_USER_SERVICE, "USER_SERVICE"},
-    {ORBIS_SYSMODULE_INTERNAL_APP_INST_UTIL, "APP_INST_UTIL"},
-    {ORBIS_SYSMODULE_INTERNAL_BGFT, "BGFT"},
+const RequiredModule kRequiredModules[] = {
+    {"libSceSystemService.sprx", "SYSTEM_SERVICE"},
+    {"libSceAppInstUtil.sprx", "APP_INST_UTIL"},
+    {"libSceSysUtil.sprx", "SYS_UTIL"},
+    {"libSceBgft.sprx", "BGFT"},
 };
+
+// Loads one system module, trying the direct /system path first and falling
+// back to the sandbox-resolved path. Depending on the HEN setup the app may see
+// the common libraries under /system/common/lib or only under its per-boot
+// sandbox mount (/<random_word>/common/lib). Returns the module handle (>= 0)
+// on success or the last negative error code.
+int32_t load_start_module(const char* name) {
+    char path[256];
+
+    std::snprintf(path, sizeof(path), "/system/common/lib/%s", name);
+    int32_t handle = static_cast<int32_t>(sceKernelLoadStartModule(path, 0, 0, 0, 0, 0));
+    if (handle >= 0) return handle;
+
+    const char* sandbox_word = sceKernelGetFsSandboxRandomWord();
+    if (sandbox_word && sandbox_word[0]) {
+        std::snprintf(path, sizeof(path), "/%s/common/lib/%s", sandbox_word, name);
+        const int32_t alt = static_cast<int32_t>(sceKernelLoadStartModule(path, 0, 0, 0, 0, 0));
+        if (alt >= 0) return alt;
+        return alt;
+    }
+
+    return handle;
+}
 
 std::string code_message(const char* operation, int32_t code) {
     std::ostringstream out;
@@ -52,10 +77,9 @@ bool PackageInstaller::load_system_modules(std::string& error, int32_t& error_co
     if (modules_loaded_) return true;
 
     for (size_t i = 0; i < sizeof(kRequiredModules) / sizeof(kRequiredModules[0]); ++i) {
-        const int32_t result =
-            static_cast<int32_t>(sceSysmoduleLoadModuleInternal(kRequiredModules[i].id));
-        if (result != 0) {
-            error_code = result;
+        const int32_t handle = load_start_module(kRequiredModules[i].name);
+        if (handle < 0) {
+            error_code = handle;
             error = std::string("MODULE LOAD ") + kRequiredModules[i].label;
             return false;
         }
