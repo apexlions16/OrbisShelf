@@ -5,7 +5,7 @@
     {
       "id": "pt",
       "name": "P.T.",
-      "title_id": "1",
+      "title_id": "PUCAS00001",
       "type": "game",
       "version": "1.00",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/1.pkg",
