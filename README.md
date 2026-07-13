@@ -24,7 +24,7 @@ Triangle refreshes the catalog. Circle exits while no job is running.
 
 A public Hugging Face repository needs no token.
 
-For a private repository, create a fine-grained read-only Hugging Face token limited to the required repository. Put only the token in this plain-text file on the PS4:
+For a private repository, create a fine-grained read-only Hugging Face token limited to the required repository. Launch OrbisShelf once so `/data/OrbisShelf` is created, enable an FTP server on the jailbroken PS4, and upload this plain-text file:
 
 ```text
 /data/OrbisShelf/hf_token.txt
@@ -38,7 +38,7 @@ hf_example_read_only_token
 
 Do not add quotes and do not add the word `Bearer`. Never commit the real token to GitHub or include it in `catalog.json`.
 
-OrbisShelf sends the token only to the original Hugging Face origin and removes it when following redirects to the storage CDN.
+OrbisShelf reads this file when a download starts. It sends the token only to the original Hugging Face origin and removes it when following redirects to the storage CDN.
 
 ## Build
 
