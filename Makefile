@@ -1,6 +1,6 @@
 # OrbisShelf - OpenOrbis PS4 package build
 TITLE       := OrbisShelf
-VERSION     := 0.10
+VERSION     := 0.20
 TITLE_ID    := ORBS00001
 CONTENT_ID  := IV0000-ORBS00001_00-ORBISSHELF000001
 
