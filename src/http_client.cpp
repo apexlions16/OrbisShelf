@@ -168,7 +168,7 @@ bool HttpClient::initialize(std::string& error) {
 
 void HttpClient::shutdown() {
     if (http_context_ >= 0) sceHttpTerm(http_context_);
-    if (ssl_context_ >= 0) sceSslTerm(ssl_context_);
+    if (ssl_context_ >= 0) sceSslTerm();
     if (net_pool_ >= 0) sceNetPoolDestroy(net_pool_);
     http_context_ = ssl_context_ = net_pool_ = -1;
 }
