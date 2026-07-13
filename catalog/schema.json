@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/apexlions16/OrbisShelf/blob/main/catalog/schema.json",
+  "title": "OrbisShelf catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_at", "items"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "type", "version", "pkg_url", "enabled"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,63}$"},
+          "name": {"type": "string", "minLength": 1, "maxLength": 96},
+          "title_id": {"type": "string", "pattern": "^[A-Z]{4}[0-9]{5}$"},
+          "type": {"enum": ["app", "game", "update", "dlc"]},
+          "version": {"type": "string", "minLength": 1, "maxLength": 16},
+          "pkg_url": {"type": "string", "format": "uri", "pattern": "^https://"},
+          "sha256": {"type": "string", "pattern": "^$|^[a-fA-F0-9]{64}$"},
+          "size_bytes": {"type": "integer", "minimum": 0},
+          "enabled": {"type": "boolean"},
+          "notes": {"type": "string", "maxLength": 256}
+        }
+      }
+    }
+  }
+}
