@@ -24,18 +24,6 @@ std::string code_message(const char* operation, int32_t code) {
     out << static_cast<uint32_t>(code) << ")";
     return out.str();
 }
-
-bool starts_with(const char* value, const char* prefix) {
-    return value && prefix && std::strncmp(value, prefix, std::strlen(prefix)) == 0;
-}
-
-bool is_retail_title_id(const char* title_id) {
-    const char* prefixes[] = {"CUSA", "PCAS", "PLAS", "PCJS", "PCSH", "NPXS"};
-    for (size_t i = 0; i < sizeof(prefixes) / sizeof(prefixes[0]); ++i) {
-        if (starts_with(title_id, prefixes[i])) return true;
-    }
-    return false;
-}
 } // namespace
 
 PackageInstaller::PackageInstaller()
@@ -123,11 +111,6 @@ bool PackageInstaller::install_local(const char* pkg_path, std::string& title_id
     if (result != 0) {
         error_code = result;
         error = code_message("sceAppInstUtilGetTitleIdFromPkg", result);
-        return false;
-    }
-
-    if (is_retail_title_id(pkg_title_id)) {
-        error = "automatic installation is disabled for retail title IDs";
         return false;
     }
 
