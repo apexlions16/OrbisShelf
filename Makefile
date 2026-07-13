@@ -24,7 +24,7 @@ endif
 
 LIBS := -lc -lkernel -lc++ -lSceUserService -lSceSysmodule -lSceNet -lSceSsl -lSceHttp \
         -lSceAppInstUtil -lSceBgft -lSDL2
-CFLAGS   := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c -DORBIS \
+CFLAGS   := --target=x86_64-pc-freebsd12-elf -fPIC -funwind-tables -c -DORBIS -D_GNU_SOURCE \
             -isysroot $(TOOLCHAIN) -isystem $(TOOLCHAIN)/include
 CXXFLAGS := $(CFLAGS) -std=c++11 -isystem $(TOOLCHAIN)/include/c++/v1
 LDFLAGS  := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x --eh-frame-hdr \
