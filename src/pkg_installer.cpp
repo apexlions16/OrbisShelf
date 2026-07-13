@@ -4,6 +4,7 @@
 #include <orbis/Bgft.h>
 #include <orbis/Sysmodule.h>
 #include <orbis/UserService.h>
+#include <orbis/libkernel.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -12,6 +13,7 @@
 namespace orbisshelf {
 namespace {
 const size_t kBgftHeapSize = 1024 * 1024;
+const char* kAppInstUtilModulePath = "/system/common/lib/libSceAppInstUtil.sprx";
 
 std::string code_message(const char* operation, int32_t code) {
     std::ostringstream out;
@@ -47,11 +49,11 @@ bool PackageInstaller::initialize_app_inst_util(std::string& error, int32_t& err
     if (app_inst_initialized_) return true;
 
     if (!app_inst_module_loaded_) {
-        const int32_t module_result = static_cast<int32_t>(
-            sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_APP_INST_UTIL));
-        if (module_result < 0) {
-            error_code = module_result;
-            error = code_message("sceSysmoduleLoadModuleInternal(APP_INST_UTIL)", module_result);
+        const int32_t module_handle = sceKernelLoadStartModule(
+            kAppInstUtilModulePath, 0, 0, 0, 0, 0);
+        if (module_handle <= 0) {
+            error_code = module_handle < 0 ? module_handle : -1;
+            error = "APPINST MODULE LOAD";
             return false;
         }
         app_inst_module_loaded_ = true;
@@ -60,7 +62,7 @@ bool PackageInstaller::initialize_app_inst_util(std::string& error, int32_t& err
     const int32_t result = sceAppInstUtilInitialize();
     if (result != 0) {
         error_code = result;
-        error = code_message("sceAppInstUtilInitialize", result);
+        error = "APPINST INITIALIZE";
         return false;
     }
     app_inst_initialized_ = true;
