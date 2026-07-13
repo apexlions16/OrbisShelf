@@ -3,12 +3,12 @@
   "generated_at": "2026-07-13T17:00:00Z",
   "items": [
     {
-      "id": "ornek-homebrew-oyun",
-      "name": "Örnek Homebrew Oyun",
-      "title_id": "BREW00001",
+      "id": "pt",
+      "name": "P.T.",
+      "title_id": "CUSA01127",
       "type": "game",
       "version": "1.00",
-      "pkg_url": "https://example.com/ornek-homebrew.pkg",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/1.pkg",
       "sha256": "",
       "size_bytes": 0,
       "enabled": false,
