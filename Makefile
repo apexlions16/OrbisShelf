@@ -36,7 +36,7 @@ PACKAGE_ASSETS := catalog/catalog.json
 RUNTIME_MODULES := sce_module/libSceFios2.prx sce_module/libc.prx
 PACKAGE_FILES := eboot.bin sce_sys/about/right.sprx sce_sys/param.sfo sce_sys/icon0.png \
                  $(RUNTIME_MODULES) $(PACKAGE_ASSETS)
-MODULE_DATA := $(TOOLCHAIN)/bin/data/modules
+MODULE_DATA := $(TOOLCHAIN)/src/modules
 
 .PHONY: all clean prepare validate
 all: validate $(CONTENT_ID).pkg
