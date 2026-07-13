@@ -13,7 +13,6 @@
 namespace orbisshelf {
 namespace {
 const size_t kBgftHeapSize = 1024 * 1024;
-const char* kAppInstUtilModulePath = "/system/common/lib/libSceAppInstUtil.sprx";
 
 std::string code_message(const char* operation, int32_t code) {
     std::ostringstream out;
@@ -37,10 +36,10 @@ bool PackageInstaller::initialize_app_inst_util(std::string& error, int32_t& err
     if (app_inst_initialized_) return true;
 
     if (!app_inst_module_loaded_) {
-        const int32_t module_handle = sceKernelLoadStartModule(
-            kAppInstUtilModulePath, 0, 0, 0, 0, 0);
-        if (module_handle <= 0) {
-            error_code = module_handle < 0 ? module_handle : -1;
+        const uint32_t module_result =
+            sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_APP_INST_UTIL);
+        if (module_result != 0) {
+            error_code = static_cast<int32_t>(module_result);
             error = "APPINST MODULE LOAD";
             return false;
         }
