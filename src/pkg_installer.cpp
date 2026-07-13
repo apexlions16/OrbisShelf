@@ -2,6 +2,7 @@
 
 #include <orbis/AppInstUtil.h>
 #include <orbis/Bgft.h>
+#include <orbis/Sysmodule.h>
 #include <orbis/UserService.h>
 
 #include <cstdlib>
@@ -21,28 +22,59 @@ std::string code_message(const char* operation, int32_t code) {
     out << static_cast<uint32_t>(code) << ")";
     return out.str();
 }
+
+bool starts_with(const char* value, const char* prefix) {
+    return value && prefix && std::strncmp(value, prefix, std::strlen(prefix)) == 0;
+}
+
+bool is_retail_title_id(const char* title_id) {
+    const char* prefixes[] = {"CUSA", "PCAS", "PLAS", "PCJS", "PCSH", "NPXS"};
+    for (size_t i = 0; i < sizeof(prefixes) / sizeof(prefixes[0]); ++i) {
+        if (starts_with(title_id, prefixes[i])) return true;
+    }
+    return false;
+}
 } // namespace
 
 PackageInstaller::PackageInstaller()
-    : bgft_heap_(0), bgft_initialized_(false), app_inst_initialized_(false), user_id_(0) {}
+    : bgft_heap_(0), bgft_initialized_(false), app_inst_initialized_(false),
+      app_inst_module_loaded_(false), user_id_(0) {}
 
 PackageInstaller::~PackageInstaller() { shutdown(); }
 
-bool PackageInstaller::initialize(std::string& error, int32_t& error_code) {
+bool PackageInstaller::initialize_app_inst_util(std::string& error, int32_t& error_code) {
     error_code = 0;
-    if (bgft_initialized_ && app_inst_initialized_) return true;
+    if (app_inst_initialized_) return true;
 
-    sceUserServiceInitialize(0);
-    const int32_t user_result = sceUserServiceGetInitialUser(&user_id_);
-    if (user_result < 0) user_id_ = 0;
+    if (!app_inst_module_loaded_) {
+        const int32_t module_result = static_cast<int32_t>(
+            sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_APP_INST_UTIL));
+        if (module_result < 0) {
+            error_code = module_result;
+            error = code_message("sceSysmoduleLoadModuleInternal(APP_INST_UTIL)", module_result);
+            return false;
+        }
+        app_inst_module_loaded_ = true;
+    }
 
-    int32_t result = sceAppInstUtilInitialize();
+    const int32_t result = sceAppInstUtilInitialize();
     if (result != 0) {
         error_code = result;
         error = code_message("sceAppInstUtilInitialize", result);
         return false;
     }
     app_inst_initialized_ = true;
+    return true;
+}
+
+bool PackageInstaller::initialize(std::string& error, int32_t& error_code) {
+    error_code = 0;
+    if (bgft_initialized_ && app_inst_initialized_) return true;
+    if (!initialize_app_inst_util(error, error_code)) return false;
+
+    sceUserServiceInitialize(0);
+    const int32_t user_result = sceUserServiceGetInitialUser(&user_id_);
+    if (user_result < 0) user_id_ = 0;
 
     bgft_heap_ = std::malloc(kBgftHeapSize);
     if (!bgft_heap_) {
@@ -56,7 +88,7 @@ bool PackageInstaller::initialize(std::string& error, int32_t& error_code) {
     init_params.heap = bgft_heap_;
     init_params.heapSize = kBgftHeapSize;
 
-    result = sceBgftServiceIntInit(&init_params);
+    const int32_t result = sceBgftServiceIntInit(&init_params);
     if (result != 0) {
         error_code = result;
         error = code_message("sceBgftServiceIntInit", result);
@@ -74,6 +106,76 @@ void PackageInstaller::shutdown() {
     bgft_heap_ = 0;
     bgft_initialized_ = false;
     app_inst_initialized_ = false;
+}
+
+bool PackageInstaller::install_local(const char* pkg_path, std::string& title_id,
+                                     std::string& error, int32_t& error_code) {
+    error_code = 0;
+    title_id.clear();
+    if (!initialize_app_inst_util(error, error_code)) return false;
+
+    char pkg_title_id[16];
+    std::memset(pkg_title_id, 0, sizeof(pkg_title_id));
+    int32_t is_app = 0;
+    int32_t result = sceAppInstUtilGetTitleIdFromPkg(pkg_path, pkg_title_id, &is_app);
+    if (result != 0) {
+        error_code = result;
+        error = code_message("sceAppInstUtilGetTitleIdFromPkg", result);
+        return false;
+    }
+
+    if (is_retail_title_id(pkg_title_id)) {
+        error = "automatic installation is disabled for retail title IDs";
+        return false;
+    }
+
+    int32_t already_exists = 0;
+    result = sceAppInstUtilAppExists(pkg_title_id, &already_exists);
+    if (result != 0) {
+        error_code = result;
+        error = code_message("sceAppInstUtilAppExists", result);
+        return false;
+    }
+    if (already_exists != 0) {
+        error = "title is already installed; automatic overwrite is disabled";
+        return false;
+    }
+
+    result = sceAppInstUtilAppInstallPkg(pkg_path, 0);
+    if (result != 0) {
+        error_code = result;
+        error = code_message("sceAppInstUtilAppInstallPkg", result);
+        return false;
+    }
+
+    title_id = pkg_title_id;
+    return true;
+}
+
+bool PackageInstaller::query_installation(const std::string& title_id, bool& exists, bool& updating,
+                                          std::string& error, int32_t& error_code) {
+    error_code = 0;
+    exists = false;
+    updating = true;
+    if (!initialize_app_inst_util(error, error_code)) return false;
+
+    int32_t exists_value = 0;
+    int32_t result = sceAppInstUtilAppExists(title_id.c_str(), &exists_value);
+    if (result != 0) {
+        error_code = result;
+        error = code_message("sceAppInstUtilAppExists", result);
+        return false;
+    }
+    exists = exists_value != 0;
+
+    int32_t updating_value = 0;
+    result = sceAppInstUtilAppIsInUpdating(title_id.c_str(), &updating_value);
+    if (result == 0) {
+        updating = updating_value != 0;
+    } else {
+        updating = !exists;
+    }
+    return true;
 }
 
 bool PackageInstaller::enqueue(const char* pkg_path, const std::string& display_name, int32_t& task_id,
