@@ -37,11 +37,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           bash -euxo pipefail <<'SCRIPT' > openorbis-sdk.log 2>&1
-          gh api repos/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/tags/v0.5.4 --jq '.assets[].name'
           SDK_URL=$(gh api repos/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/tags/v0.5.4 \
-            --jq '.assets[] | select(.name | endswith(".tar.gz")) | .browser_download_url' | head -n 1)
+            --jq '.assets[] | select(.name == "toolchain-llvm-18.tar.gz") | .browser_download_url')
           test -n "$SDK_URL"
-          echo "Downloading OpenOrbis SDK asset: ${SDK_URL##*/}"
           curl --fail --location --retry 3 "$SDK_URL" --output openorbis-sdk.tar.gz
           rm -rf .openorbis-sdk
           mkdir -p .openorbis-sdk
@@ -51,7 +49,6 @@ jobs:
           TOOLCHAIN_ROOT=$(dirname "$LINK_X")
           chmod +x "$TOOLCHAIN_ROOT/bin/linux/"*
           test -x "$TOOLCHAIN_ROOT/bin/linux/PkgTool.Core"
-          find "$TOOLCHAIN_ROOT/src/modules" -maxdepth 2 -type f -print | sort
           test -f "$TOOLCHAIN_ROOT/src/modules/right.sprx"
           test -f "$TOOLCHAIN_ROOT/src/modules/libSceFios2.prx"
           test -f "$TOOLCHAIN_ROOT/src/modules/libc.prx"
@@ -69,10 +66,22 @@ jobs:
       - name: Stop after SDK failure
         if: steps.sdk.outcome == 'failure'
         run: |
-          tail -n 80 openorbis-sdk.log
+          cat openorbis-sdk.log
           exit 1
 
-      - name: Build OrbisShelf PKG
+      - name: Compile with LLVM 18
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends clang-18 lld-18
+          export OO_PS4_TOOLCHAIN="$TOOLCHAIN_ROOT"
+          if ! make CC=clang-18 CXX=clang++-18 LD=ld.lld-18 eboot.bin > orbisshelf-compile.log 2>&1; then
+            cat orbisshelf-compile.log
+            exit 1
+          fi
+          cat orbisshelf-compile.log
+          test -s eboot.bin
+
+      - name: Package PKG with OpenOrbis tools
         run: |
           chmod -R a+rwX "$GITHUB_WORKSPACE"
           if ! docker run --rm --user 0:0 \
@@ -84,26 +93,25 @@ jobs:
             bash -lc '
               export DEBIAN_FRONTEND=noninteractive
               apt-get update -qq
-              apt-get install -y --no-install-recommends build-essential clang-12 libicu66 libssl1.1 lld-12 llvm-12 python3 ca-certificates
-              ln -sf /usr/bin/clang-12 /usr/local/bin/clang
-              ln -sf /usr/bin/clang++-12 /usr/local/bin/clang++
-              ln -sf /usr/bin/ld.lld-12 /usr/local/bin/ld.lld
+              apt-get install -y --no-install-recommends make libicu66 libssl1.1 ca-certificates python3
               make IV0000-ORBS00001_00-ORBISSHELF000001.pkg
-            ' > orbisshelf-build.log 2>&1; then
-            cat orbisshelf-build.log
+            ' > orbisshelf-package.log 2>&1; then
+            cat orbisshelf-package.log
             exit 1
           fi
-          cat orbisshelf-build.log
+          cat orbisshelf-package.log
           test -s IV0000-ORBS00001_00-ORBISSHELF000001.pkg
-          sha256sum IV0000-ORBS00001_00-ORBISSHELF000001.pkg > OrbisShelf-v0.1.0.pkg.sha256
           cp IV0000-ORBS00001_00-ORBISSHELF000001.pkg OrbisShelf-v0.1.0.pkg
+          sha256sum OrbisShelf-v0.1.0.pkg > OrbisShelf-v0.1.0.pkg.sha256
 
-      - name: Upload build log on failure
+      - name: Upload diagnostics on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: orbisshelf-build-diagnostics
-          path: orbisshelf-build.log
+          path: |
+            orbisshelf-compile.log
+            orbisshelf-package.log
           if-no-files-found: ignore
 
       - name: Upload PKG artifact
@@ -124,10 +132,10 @@ jobs:
           NOTES=$(cat <<'EOF'
           First test build of OrbisShelf for jailbroken PlayStation 4 systems.
 
-          Token file for a private Hugging Face repository:
+          Private Hugging Face repository token file:
           /data/OrbisShelf/hf_token.txt
 
-          Put only the token in that file, with no quotes. A public Hugging Face repository does not require a token.
+          Put only a read-only hf_ token in that file, with no quotes and no Bearer prefix. Public Hugging Face repositories do not require a token.
           EOF
           )
           if gh release view "$TAG" >/dev/null 2>&1; then
