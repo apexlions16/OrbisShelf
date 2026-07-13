@@ -17,7 +17,7 @@
     {
       "id": "sonic-mania",
       "name": "Sonic Mania",
-      "title_id": "",
+      "title_id": "PUCA00002",
       "type": "game",
       "version": "1.00",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/2.pkg",
@@ -29,7 +29,7 @@
     {
       "id": "sonic-mania-update-1.01",
       "name": "Sonic Mania Update 1.01",
-      "title_id": "",
+      "title_id": "PUCA00003",
       "type": "update",
       "version": "1.01",
       "base_game_id": "sonic-mania",
