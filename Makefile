@@ -32,7 +32,7 @@ LDFLAGS  := -m elf_x86_64 -pie --script $(TOOLCHAIN)/link.x --eh-frame-hdr \
 
 CPPFILES := $(wildcard $(PROJDIR)/*.cpp)
 OBJS     := $(patsubst $(PROJDIR)/%.cpp,$(INTDIR)/%.o,$(CPPFILES))
-PACKAGE_ASSETS := catalog/catalog.json
+PACKAGE_ASSETS := catalog.json
 RUNTIME_MODULES := sce_module/libSceFios2.prx sce_module/libc.prx
 PACKAGE_FILES := eboot.bin sce_sys/about/right.sprx sce_sys/param.sfo sce_sys/icon0.png \
                  $(RUNTIME_MODULES) $(PACKAGE_ASSETS)
@@ -44,7 +44,10 @@ all: validate $(CONTENT_ID).pkg
 validate:
 	python3 scripts/validate_catalog.py catalog/catalog.json
 
-prepare: sce_sys/about/right.sprx sce_sys/icon0.png $(RUNTIME_MODULES)
+prepare: sce_sys/about/right.sprx sce_sys/icon0.png $(RUNTIME_MODULES) catalog.json
+
+catalog.json: catalog/catalog.json
+	cp $< $@
 
 $(INTDIR):
 	mkdir -p $(INTDIR)
@@ -94,4 +97,4 @@ $(CONTENT_ID).pkg: pkg.gp4
 	$(TOOLCHAIN)/bin/$(CDIR)/PkgTool.Core pkg_build $< .
 
 clean:
-	rm -rf $(INTDIR) eboot.bin pkg.gp4 $(CONTENT_ID).pkg sce_sys sce_module
+	rm -rf $(INTDIR) eboot.bin pkg.gp4 $(CONTENT_ID).pkg sce_sys sce_module catalog.json
