@@ -101,8 +101,8 @@ jobs:
           fi
           cat orbisshelf-package.log
           test -s IV0000-ORBS00001_00-ORBISSHELF000001.pkg
-          cp IV0000-ORBS00001_00-ORBISSHELF000001.pkg OrbisShelf-v0.1.0.pkg
-          sha256sum OrbisShelf-v0.1.0.pkg > OrbisShelf-v0.1.0.pkg.sha256
+          cp IV0000-ORBS00001_00-ORBISSHELF000001.pkg OrbisShelf-v0.2.0.pkg
+          sha256sum OrbisShelf-v0.2.0.pkg > OrbisShelf-v0.2.0.pkg.sha256
 
       - name: Upload diagnostics on failure
         if: failure()
@@ -117,31 +117,36 @@ jobs:
       - name: Upload PKG artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OrbisShelf-v0.1.0-PS4
+          name: OrbisShelf-v0.2.0-PS4
           path: |
-            OrbisShelf-v0.1.0.pkg
-            OrbisShelf-v0.1.0.pkg.sha256
+            OrbisShelf-v0.2.0.pkg
+            OrbisShelf-v0.2.0.pkg.sha256
           if-no-files-found: error
 
       - name: Publish GitHub Release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: v0.1.0
+          TAG: v0.2.0
         run: |
           NOTES=$(cat <<'EOF'
-          First test build of OrbisShelf for jailbroken PlayStation 4 systems.
+          Stability test build for local PS4 PKG installation.
 
-          Private Hugging Face repository token file:
-          /data/OrbisShelf/hf_token.txt
+          Changes:
+          - keeps BGFT state alive while the PS4 consumes the downloaded PKG
+          - starts the PS4 install task immediately after download and verification
+          - shows download percentage and transfer speed
+          - shows PS4 installation percentage when reported by BGFT
+          - retains the downloaded PKG after installation for this stability build
+          - records the last installation stage in /data/OrbisShelf/install_stage.txt
 
-          Put only a read-only hf_ token in that file, with no quotes and no Bearer prefix. Public Hugging Face repositories do not require a token.
+          Use only with PKGs you created or are authorized to redistribute.
           EOF
           )
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" OrbisShelf-v0.1.0.pkg OrbisShelf-v0.1.0.pkg.sha256 --clobber
+            gh release upload "$TAG" OrbisShelf-v0.2.0.pkg OrbisShelf-v0.2.0.pkg.sha256 --clobber
           else
-            gh release create "$TAG" OrbisShelf-v0.1.0.pkg OrbisShelf-v0.1.0.pkg.sha256 \
-              --title "OrbisShelf v0.1.0" \
+            gh release create "$TAG" OrbisShelf-v0.2.0.pkg OrbisShelf-v0.2.0.pkg.sha256 \
+              --title "OrbisShelf v0.2.0" \
               --notes "$NOTES"
           fi
