@@ -30,39 +30,47 @@ jobs:
           mkdir -p sce_sys
           python tools/generate_icon.py sce_sys/icon0.png
 
-      - name: Build OpenOrbis SDK container
-        id: sdk
-        continue-on-error: true
+      - name: Download OpenOrbis v0.5.4 SDK
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          docker build --progress=plain \
-            --build-arg OO_TOOLCHAIN_VERSION=v0.5.4 \
-            --tag orbisshelf-openorbis:v0.5.4 \
-            https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git#v0.5.4 \
-            > openorbis-build.log 2>&1
-
-      - name: Upload OpenOrbis diagnostics
-        if: steps.sdk.outcome == 'failure'
-        uses: actions/upload-artifact@v4
-        with:
-          name: openorbis-build-diagnostics
-          path: openorbis-build.log
-          if-no-files-found: error
-
-      - name: Stop after SDK failure
-        if: steps.sdk.outcome == 'failure'
-        run: |
-          tail -n 80 openorbis-build.log
-          exit 1
+          set -euo pipefail
+          SDK_URL=$(gh api repos/OpenOrbis/OpenOrbis-PS4-Toolchain/releases/tags/v0.5.4 \
+            --jq '.assets[] | select(.name | endswith(".tar.gz")) | .browser_download_url' | head -n 1)
+          test -n "$SDK_URL"
+          echo "Downloading OpenOrbis SDK asset: ${SDK_URL##*/}"
+          curl --fail --location --retry 3 "$SDK_URL" --output openorbis-sdk.tar.gz
+          rm -rf .openorbis-sdk
+          mkdir -p .openorbis-sdk
+          tar -xzf openorbis-sdk.tar.gz -C .openorbis-sdk
+          LINK_X=$(find "$GITHUB_WORKSPACE/.openorbis-sdk" -type f -name link.x -print -quit)
+          test -n "$LINK_X"
+          TOOLCHAIN_ROOT=$(dirname "$LINK_X")
+          test -x "$TOOLCHAIN_ROOT/bin/linux/PkgTool.Core"
+          chmod +x "$TOOLCHAIN_ROOT/bin/linux/"*
+          test -f "$TOOLCHAIN_ROOT/bin/data/modules/right.sprx"
+          test -f "$TOOLCHAIN_ROOT/bin/data/modules/libSceFios2.prx"
+          test -f "$TOOLCHAIN_ROOT/bin/data/modules/libc.prx"
+          echo "TOOLCHAIN_ROOT=$TOOLCHAIN_ROOT" >> "$GITHUB_ENV"
 
       - name: Build OrbisShelf PKG
         run: |
           chmod -R a+rwX "$GITHUB_WORKSPACE"
           if ! docker run --rm --user 0:0 \
+            --env OO_PS4_TOOLCHAIN=/opt/openorbis \
             --volume "$GITHUB_WORKSPACE:/work" \
+            --volume "$TOOLCHAIN_ROOT:/opt/openorbis" \
             --workdir /work \
-            orbisshelf-openorbis:v0.5.4 \
-            bash -lc 'make IV0000-ORBS00001_00-ORBISSHELF000001.pkg' \
-            > orbisshelf-build.log 2>&1; then
+            ubuntu:20.04 \
+            bash -lc '
+              export DEBIAN_FRONTEND=noninteractive
+              apt-get update -qq
+              apt-get install -y --no-install-recommends build-essential clang-12 libicu66 libssl1.1 lld-12 llvm-12 python3 ca-certificates
+              ln -sf /usr/bin/clang-12 /usr/local/bin/clang
+              ln -sf /usr/bin/clang++-12 /usr/local/bin/clang++
+              ln -sf /usr/bin/ld.lld-12 /usr/local/bin/ld.lld
+              make IV0000-ORBS00001_00-ORBISSHELF000001.pkg
+            ' > orbisshelf-build.log 2>&1; then
             cat orbisshelf-build.log
             exit 1
           fi
@@ -70,6 +78,14 @@ jobs:
           test -s IV0000-ORBS00001_00-ORBISSHELF000001.pkg
           sha256sum IV0000-ORBS00001_00-ORBISSHELF000001.pkg > OrbisShelf-v0.1.0.pkg.sha256
           cp IV0000-ORBS00001_00-ORBISSHELF000001.pkg OrbisShelf-v0.1.0.pkg
+
+      - name: Upload build log on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: orbisshelf-build-diagnostics
+          path: orbisshelf-build.log
+          if-no-files-found: ignore
 
       - name: Upload PKG artifact
         uses: actions/upload-artifact@v4
