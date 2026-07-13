@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          show-progress: false
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -29,16 +31,28 @@ jobs:
           python tools/generate_icon.py sce_sys/icon0.png
 
       - name: Build OpenOrbis SDK container
+        id: sdk
+        continue-on-error: true
         run: |
-          if ! docker build --progress=plain \
+          docker build --progress=plain \
             --build-arg OO_TOOLCHAIN_VERSION=v0.5.4 \
             --tag orbisshelf-openorbis:v0.5.4 \
             https://github.com/OpenOrbis/OpenOrbis-PS4-Toolchain.git#v0.5.4 \
-            > /tmp/openorbis-build.log 2>&1; then
-            tail -n 120 /tmp/openorbis-build.log
-            exit 1
-          fi
-          tail -n 20 /tmp/openorbis-build.log
+            > openorbis-build.log 2>&1
+
+      - name: Upload OpenOrbis diagnostics
+        if: steps.sdk.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: openorbis-build-diagnostics
+          path: openorbis-build.log
+          if-no-files-found: error
+
+      - name: Stop after SDK failure
+        if: steps.sdk.outcome == 'failure'
+        run: |
+          tail -n 80 openorbis-build.log
+          exit 1
 
       - name: Build OrbisShelf PKG
         run: |
@@ -48,11 +62,11 @@ jobs:
             --workdir /work \
             orbisshelf-openorbis:v0.5.4 \
             bash -lc 'make IV0000-ORBS00001_00-ORBISSHELF000001.pkg' \
-            > /tmp/orbisshelf-build.log 2>&1; then
-            cat /tmp/orbisshelf-build.log
+            > orbisshelf-build.log 2>&1; then
+            cat orbisshelf-build.log
             exit 1
           fi
-          cat /tmp/orbisshelf-build.log
+          cat orbisshelf-build.log
           test -s IV0000-ORBS00001_00-ORBISSHELF000001.pkg
           sha256sum IV0000-ORBS00001_00-ORBISSHELF000001.pkg > OrbisShelf-v0.1.0.pkg.sha256
           cp IV0000-ORBS00001_00-ORBISSHELF000001.pkg OrbisShelf-v0.1.0.pkg
