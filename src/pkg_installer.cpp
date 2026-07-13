@@ -2,9 +2,7 @@
 
 #include <orbis/AppInstUtil.h>
 #include <orbis/Bgft.h>
-#include <orbis/Sysmodule.h>
 #include <orbis/UserService.h>
-#include <orbis/libkernel.h>
 
 #include <cstdlib>
 #include <cstring>
@@ -26,25 +24,13 @@ std::string code_message(const char* operation, int32_t code) {
 } // namespace
 
 PackageInstaller::PackageInstaller()
-    : bgft_heap_(0), bgft_initialized_(false), app_inst_initialized_(false),
-      app_inst_module_loaded_(false), user_id_(0) {}
+    : bgft_heap_(0), bgft_initialized_(false), app_inst_initialized_(false), user_id_(0) {}
 
 PackageInstaller::~PackageInstaller() { shutdown(); }
 
 bool PackageInstaller::initialize_app_inst_util(std::string& error, int32_t& error_code) {
     error_code = 0;
     if (app_inst_initialized_) return true;
-
-    if (!app_inst_module_loaded_) {
-        const uint32_t module_result =
-            sceSysmoduleLoadModuleInternal(ORBIS_SYSMODULE_INTERNAL_APP_INST_UTIL);
-        if (module_result != 0) {
-            error_code = static_cast<int32_t>(module_result);
-            error = "APPINST MODULE LOAD";
-            return false;
-        }
-        app_inst_module_loaded_ = true;
-    }
 
     const int32_t result = sceAppInstUtilInitialize();
     if (result != 0) {

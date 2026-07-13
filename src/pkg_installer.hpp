@@ -29,7 +29,6 @@ private:
     void* bgft_heap_;
     bool bgft_initialized_;
     bool app_inst_initialized_;
-    bool app_inst_module_loaded_;
     int32_t user_id_;
 };
 
