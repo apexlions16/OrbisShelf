@@ -1,0 +1,12 @@
+/build/
+/sce_module/
+/sce_sys/
+eboot.bin
+/pkg.gp4
+/*.pkg
+*.elf
+*.oelf
+*.o
+hf_token.txt
+.env
+.DS_Store
