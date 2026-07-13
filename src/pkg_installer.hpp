@@ -1,5 +1,6 @@
 #pragma once
 
+#include <orbis/Bgft.h>
 #include <stdint.h>
 #include <string>
 
@@ -18,7 +19,7 @@ public:
                   int32_t& install_error, std::string& error);
 
 private:
-    void* bgft_heap_;
+    OrbisBgftInitParams bgft_init_params_;
     bool bgft_initialized_;
     bool app_inst_initialized_;
     int32_t user_id_;
