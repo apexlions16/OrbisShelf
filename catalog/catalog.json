@@ -1,5 +1,18 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-13T00:00:00Z",
-  "items": []
+  "generated_at": "2026-07-13T17:00:00Z",
+  "items": [
+    {
+      "id": "ornek-homebrew-oyun",
+      "name": "Örnek Homebrew Oyun",
+      "title_id": "BREW00001",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://example.com/ornek-homebrew.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": false,
+      "notes": "Bu kalıcı örnek kaydı silmeyin. Yalnızca dağıtım izniniz bulunan PKG bilgileriyle düzenleyin ve hazır olduğunda enabled değerini true yapın."
+    }
+  ]
 }
