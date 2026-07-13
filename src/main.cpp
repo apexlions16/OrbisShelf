@@ -164,33 +164,7 @@ void* job_main(void* raw) {
         }
     }
 
-    set_status(state, "REGISTERING INSTALL TASK", true);
-    orbisshelf::PackageInstaller installer;
-    int32_t error_code = 0;
-    int32_t task_id = -1;
-    if (!installer.enqueue(pkg_path.c_str(), item.name, task_id, error, error_code)) {
-        set_status(state, "INSTALL START FAILED: " + error, false, error_code);
-        return 0;
-    }
-
-    set_status(state, "INSTALLING " + item.name, true);
-    for (;;) {
-        uint64_t transferred = 0, total = 0;
-        int32_t install_error = 0;
-        if (!installer.progress(task_id, transferred, total, install_error, error)) {
-            set_status(state, "INSTALL STATUS FAILED: " + error, false);
-            return 0;
-        }
-        progress_callback(transferred, total, state);
-        if (install_error != 0) {
-            set_status(state, "INSTALL FAILED", false, install_error);
-            return 0;
-        }
-        if (total > 0 && transferred >= total) break;
-        sceKernelUsleep(500000);
-    }
-    remove(pkg_path.c_str());
-    set_status(state, "INSTALL COMPLETE: " + item.name, false);
+    set_status(state, "DOWNLOAD COMPLETE - PKG SAVED TO DISK", false);
     return 0;
 }
 
@@ -251,7 +225,7 @@ void render(SDL_Renderer* renderer, SharedState& state, int selected) {
     fill(renderer, 0, 0, kWidth, kHeight, background);
     fill(renderer, 0, 0, kWidth, 120, panel);
     orbisshelf::draw_text(renderer, 70, 38, 7, "ORBISSHELF", white);
-    orbisshelf::draw_text(renderer, 1510, 48, 3, "X INSTALL   TRIANGLE REFRESH", muted);
+    orbisshelf::draw_text(renderer, 1430, 48, 3, "X DOWNLOAD   TRIANGLE REFRESH   CIRCLE EXIT", muted);
 
     std::vector<CatalogItem> items;
     std::string status;
@@ -299,8 +273,13 @@ void render(SDL_Renderer* renderer, SharedState& state, int selected) {
         if (total) filled = static_cast<int>((static_cast<double>(current) / static_cast<double>(total)) * bar_w);
         fill(renderer, bar_x, bar_y, std::max(4, std::min(bar_w, filled)), bar_h, accent);
         std::string progress = human_bytes(current);
-        if (total) progress += " / " + human_bytes(total);
-        orbisshelf::draw_text(renderer, 1430, 995, 3, progress, muted);
+        if (total) {
+            const int percent = static_cast<int>((static_cast<double>(current) / static_cast<double>(total)) * 100.0);
+            std::ostringstream progress_text;
+            progress_text << percent << "%   " << progress << " / " << human_bytes(total);
+            progress = progress_text.str();
+        }
+        orbisshelf::draw_text(renderer, 1370, 995, 3, progress, muted);
     }
 }
 
@@ -338,8 +317,9 @@ int main(int, char**) {
                 up = (event.jhat.value & SDL_HAT_UP) != 0;
                 down = (event.jhat.value & SDL_HAT_DOWN) != 0;
             } else if (event.type == SDL_JOYBUTTONDOWN) {
-                choose = event.jbutton.button == 1;
-                quit = event.jbutton.button == 2;
+                // OpenOrbis SDL button order: Cross=0, Circle=1, Square=2, Triangle=3.
+                choose = event.jbutton.button == 0;
+                quit = event.jbutton.button == 1;
                 refresh = event.jbutton.button == 3;
             }
 
