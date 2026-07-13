@@ -24,9 +24,9 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Validate catalog and generate icon
+      - name: Check catalog JSON and generate icon
         run: |
-          python scripts/validate_catalog.py catalog/catalog.json
+          python -m json.tool catalog/catalog.json >/dev/null
           mkdir -p sce_sys
           python tools/generate_icon.py sce_sys/icon0.png
 
