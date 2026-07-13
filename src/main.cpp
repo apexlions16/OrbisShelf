@@ -23,7 +23,7 @@ using orbisshelf::CatalogItem;
 const int kWidth = 1920;
 const int kHeight = 1080;
 const char* kCatalogUrl = "https://raw.githubusercontent.com/apexlions16/OrbisShelf/main/catalog/catalog.json";
-const char* kBundledCatalog = "/app0/catalog/catalog.json";
+const char* kBundledCatalog = "/app0/catalog.json";
 const char* kCachedCatalog = "/data/OrbisShelf/catalog.json";
 const char* kTokenPath = "/data/OrbisShelf/hf_token.txt";
 const char* kDownloadDirectory = "/data/OrbisShelf/downloads";
