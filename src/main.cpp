@@ -27,6 +27,9 @@ const char* kBundledCatalog = "/app0/catalog.json";
 const char* kCachedCatalog = "/data/OrbisShelf/catalog.json";
 const char* kTokenPath = "/data/OrbisShelf/hf_token.txt";
 const char* kDownloadDirectory = "/data/OrbisShelf/downloads";
+const int kInstallPollLimit = 7200;
+const uint32_t kInstallPollDelayUs = 500000;
+const int kInstallStablePolls = 4;
 
 struct SharedState {
     pthread_mutex_t mutex;
@@ -164,7 +167,53 @@ void* job_main(void* raw) {
         }
     }
 
-    set_status(state, "DOWNLOAD COMPLETE - PKG SAVED TO DISK", false);
+    progress_callback(0, 0, state);
+    set_status(state, "STARTING LOCAL INSTALL", true);
+
+    orbisshelf::PackageInstaller installer;
+    int32_t error_code = 0;
+    std::string installed_title_id;
+    if (!installer.install_local(pkg_path.c_str(), installed_title_id, error, error_code)) {
+        set_status(state, "INSTALL START FAILED - PKG KEPT: " + error, false, error_code);
+        return 0;
+    }
+
+    set_status(state, "INSTALLING " + item.name, true);
+    sceKernelUsleep(2000000);
+
+    int stable_polls = 0;
+    bool installation_verified = false;
+    for (int poll = 0; poll < kInstallPollLimit; ++poll) {
+        bool exists = false;
+        bool updating = true;
+        if (!installer.query_installation(installed_title_id, exists, updating, error, error_code)) {
+            set_status(state, "INSTALL CHECK FAILED - PKG KEPT: " + error, false, error_code);
+            return 0;
+        }
+
+        if (exists && !updating) {
+            ++stable_polls;
+            if (stable_polls >= kInstallStablePolls) {
+                installation_verified = true;
+                break;
+            }
+        } else {
+            stable_polls = 0;
+        }
+        sceKernelUsleep(kInstallPollDelayUs);
+    }
+
+    if (!installation_verified) {
+        set_status(state, "INSTALL VERIFY TIMEOUT - PKG KEPT", false);
+        return 0;
+    }
+
+    if (remove(pkg_path.c_str()) != 0) {
+        set_status(state, "INSTALL VERIFIED - PKG DELETE FAILED", false);
+        return 0;
+    }
+
+    set_status(state, "INSTALL COMPLETE - LOCAL PKG DELETED", false);
     return 0;
 }
 
@@ -225,7 +274,7 @@ void render(SDL_Renderer* renderer, SharedState& state, int selected) {
     fill(renderer, 0, 0, kWidth, kHeight, background);
     fill(renderer, 0, 0, kWidth, 120, panel);
     orbisshelf::draw_text(renderer, 70, 38, 7, "ORBISSHELF", white);
-    orbisshelf::draw_text(renderer, 1430, 48, 3, "X DOWNLOAD   TRIANGLE REFRESH   CIRCLE EXIT", muted);
+    orbisshelf::draw_text(renderer, 1370, 48, 3, "X DOWNLOAD+INSTALL   TRIANGLE REFRESH   CIRCLE EXIT", muted);
 
     std::vector<CatalogItem> items;
     std::string status;
