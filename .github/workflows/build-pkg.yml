@@ -43,7 +43,6 @@ jobs:
           test -n "$SDK_URL"
           echo "Downloading OpenOrbis SDK asset: ${SDK_URL##*/}"
           curl --fail --location --retry 3 "$SDK_URL" --output openorbis-sdk.tar.gz
-          tar -tzf openorbis-sdk.tar.gz | head -n 30 || true
           rm -rf .openorbis-sdk
           mkdir -p .openorbis-sdk
           tar -xzf openorbis-sdk.tar.gz -C .openorbis-sdk
@@ -52,10 +51,10 @@ jobs:
           TOOLCHAIN_ROOT=$(dirname "$LINK_X")
           chmod +x "$TOOLCHAIN_ROOT/bin/linux/"*
           test -x "$TOOLCHAIN_ROOT/bin/linux/PkgTool.Core"
-          find "$TOOLCHAIN_ROOT/bin/data" -maxdepth 3 -type f -print | sort
-          test -f "$TOOLCHAIN_ROOT/bin/data/modules/right.sprx"
-          test -f "$TOOLCHAIN_ROOT/bin/data/modules/libSceFios2.prx"
-          test -f "$TOOLCHAIN_ROOT/bin/data/modules/libc.prx"
+          find "$TOOLCHAIN_ROOT/src/modules" -maxdepth 2 -type f -print | sort
+          test -f "$TOOLCHAIN_ROOT/src/modules/right.sprx"
+          test -f "$TOOLCHAIN_ROOT/src/modules/libSceFios2.prx"
+          test -f "$TOOLCHAIN_ROOT/src/modules/libc.prx"
           echo "TOOLCHAIN_ROOT=$TOOLCHAIN_ROOT" >> "$GITHUB_ENV"
           SCRIPT
 
