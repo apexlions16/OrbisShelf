@@ -11,7 +11,7 @@
       "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/1.pkg",
       "sha256": "",
       "size_bytes": 0,
-      "enabled": false,
+      "enabled": true,
       "notes": "Alanlari kendi dagitim izniniz olan PKG bilgileriyle degistirin ve enabled degerini true yapin."
     }
   ]
