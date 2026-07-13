@@ -1,3 +1,4 @@
+```json
 {
   "schema_version": 1,
   "generated_at": "2026-07-13T17:00:00Z",
@@ -37,6 +38,55 @@
       "size_bytes": 0,
       "enabled": true,
       "notes": "Sonic Mania CUSA07023 için 1.01 güncellemesi."
+    },
+    {
+      "id": "cuphead",
+      "name": "Cuphead",
+      "title_id": "CUSA20499",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/3.1.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Cuphead ana oyun PKG kaydı."
+    },
+    {
+      "id": "cuphead-delicious-last-course",
+      "name": "Cuphead - The Delicious Last Course",
+      "title_id": "CUSA20499",
+      "type": "dlc",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/3.2.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Cuphead - The Delicious Last Course DLC paketi."
+    },
+    {
+      "id": "cuphead-update-1-04",
+      "name": "Cuphead Update 1.04",
+      "title_id": "CUSA20499",
+      "type": "update",
+      "version": "1.04",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/3.3.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Cuphead CUSA20499 için 1.04 güncellemesi."
+    },
+    {
+      "id": "cuphead-extra-file",
+      "name": "Cuphead Ek Dosya",
+      "title_id": "CUSA20499",
+      "type": "extra",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/3.4.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Cuphead için ek dosya paketi."
     }
   ]
 }
+```
