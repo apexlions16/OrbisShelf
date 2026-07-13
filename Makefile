@@ -36,6 +36,7 @@ PACKAGE_ASSETS := catalog/catalog.json
 RUNTIME_MODULES := sce_module/libSceFios2.prx sce_module/libc.prx
 PACKAGE_FILES := eboot.bin sce_sys/about/right.sprx sce_sys/param.sfo sce_sys/icon0.png \
                  $(RUNTIME_MODULES) $(PACKAGE_ASSETS)
+MODULE_DATA := $(TOOLCHAIN)/bin/data/modules
 
 .PHONY: all clean prepare validate
 all: validate $(CONTENT_ID).pkg
@@ -58,11 +59,15 @@ eboot.bin: $(OBJS)
 
 sce_sys/about/right.sprx:
 	mkdir -p sce_sys/about
-	cp $(TOOLCHAIN)/samples/SDL2/sce_sys/about/right.sprx $@
+	cp $(MODULE_DATA)/right.sprx $@
 
-sce_module/libSceFios2.prx sce_module/libc.prx:
+sce_module/libSceFios2.prx:
 	mkdir -p sce_module
-	cp $(TOOLCHAIN)/samples/SDL2/$@ $@
+	cp $(MODULE_DATA)/libSceFios2.prx $@
+
+sce_module/libc.prx:
+	mkdir -p sce_module
+	cp $(MODULE_DATA)/libc.prx $@
 
 sce_sys/icon0.png: tools/generate_icon.py
 	mkdir -p sce_sys
