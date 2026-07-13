@@ -17,7 +17,7 @@
     {
       "id": "sonic-mania",
       "name": "Sonic Mania",
-      "title_id": "",
+      "title_id": "CUSA07023",
       "type": "game",
       "version": "1.00",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/2.pkg",
@@ -29,14 +29,14 @@
     {
       "id": "sonic-mania-update-1-01",
       "name": "Sonic Mania Update 1.01",
-      "title_id": "",
+      "title_id": "CUSA07023",
       "type": "update",
       "version": "1.01",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/entroylab/resolve/main/PPCH4/2.1.pkg",
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "Sonic Mania ana oyunu için 1.01 güncellemesi."
+      "notes": "Sonic Mania CUSA07023 için 1.01 güncellemesi."
     }
   ]
 }
