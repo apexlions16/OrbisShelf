@@ -19,7 +19,7 @@
       "name": "Bloodborne Update",
       "title_id": "CUSA00900",
       "type": "update",
-      "version": "unknown",
+      "version": "1.09",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/4.2.pkg",
       "sha256": "",
       "size_bytes": 0,
