@@ -87,6 +87,30 @@
       "notes": "Cuphead CUSA20499 için 1.04 güncellemesi."
     },
     {
+      "id": "fifa-14",
+      "name": "FIFA 14 (9.20 GB)",
+      "title_id": "CUSA00128",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/7.1%20(FIF14)).pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "FIFA 14 ana oyun paketi. Belirtilen boyut: 9.20 GB."
+    },
+    {
+      "id": "fifa-14-update-1-06",
+      "name": "FIFA 14 Update 1.06 (397 MB)",
+      "title_id": "CUSA00128",
+      "type": "update",
+      "version": "1.06",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/7.2%20(FIF14).pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "FIFA 14 CUSA00128 için 1.06 güncellemesi. Belirtilen boyut: 397 MB."
+    },
+    {
       "id": "god-of-war-iii-remastered",
       "name": "God of War III Remastered",
       "title_id": "CUSA01715",
