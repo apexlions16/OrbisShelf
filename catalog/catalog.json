@@ -3,6 +3,30 @@
   "generated_at": "2026-07-14T00:00:00Z",
   "items": [
     {
+      "id": "cuphead",
+      "name": "Cuphead",
+      "title_id": "CUSA20499",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/3.1.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Cuphead ana oyun paketi."
+    },
+    {
+      "id": "cuphead-update-1-04",
+      "name": "Cuphead Update 1.04",
+      "title_id": "CUSA20499",
+      "type": "update",
+      "version": "1.04",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/3.2.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Cuphead CUSA20499 için 1.04 güncellemesi."
+    },
+    {
       "id": "pt-playable-teaser",
       "name": "P.T. (Playable Teaser)",
       "title_id": "CUSA01127",
