@@ -3,6 +3,18 @@
   "generated_at": "2026-07-14T00:00:00Z",
   "items": [
     {
+      "id": "pt-playable-teaser",
+      "name": "P.T. (Playable Teaser)",
+      "title_id": "CUSA01127",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/2.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "P.T. (Playable Teaser) ana oyun paketi."
+    },
+    {
       "id": "sonic-mania",
       "name": "Sonic Mania",
       "title_id": "CUSA07023",
