@@ -3,6 +3,66 @@
   "generated_at": "2026-07-14T00:00:00Z",
   "items": [
     {
+      "id": "bloodborne",
+      "name": "Bloodborne",
+      "title_id": "CUSA00900",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/4.1.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Bloodborne ana oyun paketi."
+    },
+    {
+      "id": "bloodborne-update",
+      "name": "Bloodborne Update",
+      "title_id": "CUSA00900",
+      "type": "update",
+      "version": "unknown",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/4.2.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Bloodborne CUSA00900 güncelleme paketi. Güncelleme sürümü belirtilmedi."
+    },
+    {
+      "id": "bloodborne-dlc-1",
+      "name": "Bloodborne DLC 1",
+      "title_id": "CUSA00900",
+      "type": "dlc",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/4.3.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Bloodborne için DLC 1 paketi."
+    },
+    {
+      "id": "bloodborne-dlc-2",
+      "name": "Bloodborne DLC 2",
+      "title_id": "CUSA00900",
+      "type": "dlc",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/4.4.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Bloodborne için DLC 2 paketi."
+    },
+    {
+      "id": "bloodborne-dlc-3",
+      "name": "Bloodborne DLC 3",
+      "title_id": "CUSA00900",
+      "type": "dlc",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/4.5.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Bloodborne için DLC 3 paketi."
+    },
+    {
       "id": "cuphead",
       "name": "Cuphead",
       "title_id": "CUSA20499",
@@ -16,7 +76,7 @@
     },
     {
       "id": "cuphead-update-1-04",
-      "name": "Cuphead Update 1.04 !!!!!!!!!!!!!!!!!!!",
+      "name": "Cuphead Update 1.04",
       "title_id": "CUSA20499",
       "type": "update",
       "version": "1.04",
