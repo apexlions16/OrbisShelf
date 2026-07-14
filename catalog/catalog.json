@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-14T07:56:47Z",
+  "generated_at": "2026-07-14T08:03:44Z",
   "items": [
     {
       "id": "bloodborne",
@@ -181,6 +181,18 @@
       "size_bytes": 0,
       "enabled": true,
       "notes": "P.T. (Playable Teaser) ana oyun paketi."
+    },
+    {
+      "id": "pes-2006",
+      "name": "PES 2006 (3.72 GB)",
+      "title_id": "CUSA00000",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/8.1%20(PES6).pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "PES 2006 ana oyun paketi."
     },
     {
       "id": "sonic-mania",
