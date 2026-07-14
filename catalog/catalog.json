@@ -108,7 +108,43 @@
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "God of War III Remastered CUSA01715 güncelleme paketi. Güncelleme sürümü belirtilmedi."
+      "notes": "God of War III Remastered CUSA01715 güncelleme paketi."
+    },
+    {
+      "id": "grand-theft-auto-5",
+      "name": "Grand Theft Auto 5 (41.6 GB)",
+      "title_id": "CUSA00411",
+      "type": "game",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/6.1.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Grand Theft Auto 5 ana oyun paketi. Belirtilen boyut: 41.6 GB."
+    },
+    {
+      "id": "grand-theft-auto-5-update-1-56",
+      "name": "Grand Theft Auto 5 Update 1.56 (48.3 GB)",
+      "title_id": "CUSA00411",
+      "type": "update",
+      "version": "1.56",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/6.2.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Grand Theft Auto 5 CUSA00411 için 1.56 güncellemesi. Belirtilen boyut: 48.3 GB."
+    },
+    {
+      "id": "grand-theft-auto-5-dlc",
+      "name": "Grand Theft Auto 5 DLC (<1MB)",
+      "title_id": "CUSA00411",
+      "type": "dlc",
+      "version": "1.00",
+      "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/6.3.pkg",
+      "sha256": "",
+      "size_bytes": 0,
+      "enabled": true,
+      "notes": "Grand Theft Auto 5 DLC paketi. Belirtilen boyut: 1 MB'den küçük."
     },
     {
       "id": "pt-playable-teaser",
