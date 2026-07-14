@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-14T00:00:00Z",
+  "generated_at": "2026-07-14T07:56:47Z",
   "items": [
     {
       "id": "bloodborne",
-      "name": "Bloodborne",
+      "name": "Bloodborne (31.3 GB)",
       "title_id": "CUSA00900",
       "type": "game",
       "version": "1.00",
@@ -15,8 +15,8 @@
       "notes": "Bloodborne ana oyun paketi."
     },
     {
-      "id": "bloodborne-update",
-      "name": "Bloodborne Update",
+      "id": "bloodborne-update-unknown",
+      "name": "Bloodborne Update (10.4 MB)",
       "title_id": "CUSA00900",
       "type": "update",
       "version": "unknown",
@@ -24,11 +24,11 @@
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "Bloodborne CUSA00900 güncelleme paketi. Güncelleme sürümü belirtilmedi."
+      "notes": "Bloodborne CUSA00900 için unknown güncellemesi."
     },
     {
-      "id": "bloodborne-dlc-1",
-      "name": "Bloodborne DLC 1",
+      "id": "bloodborne-dlc-1-00",
+      "name": "Bloodborne DLC 1 (1.05 MB\n)",
       "title_id": "CUSA00900",
       "type": "dlc",
       "version": "1.00",
@@ -36,11 +36,11 @@
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "Bloodborne için DLC 1 paketi."
+      "notes": "Bloodborne için DLC paketi."
     },
     {
-      "id": "bloodborne-dlc-2",
-      "name": "Bloodborne DLC 2",
+      "id": "bloodborne-dlc-1-00-2",
+      "name": "Bloodborne DLC 2 (1.05 MB)",
       "title_id": "CUSA00900",
       "type": "dlc",
       "version": "1.00",
@@ -48,11 +48,11 @@
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "Bloodborne için DLC 2 paketi."
+      "notes": "Bloodborne için DLC paketi."
     },
     {
-      "id": "bloodborne-dlc-3",
-      "name": "Bloodborne DLC 3",
+      "id": "bloodborne-dlc-1-00-3",
+      "name": "Bloodborne DLC 3 (1.05 MB)",
       "title_id": "CUSA00900",
       "type": "dlc",
       "version": "1.00",
@@ -60,11 +60,11 @@
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "Bloodborne için DLC 3 paketi."
+      "notes": "Bloodborne için DLC paketi."
     },
     {
       "id": "cuphead",
-      "name": "Cuphead",
+      "name": "Cuphead (3.62 GB)",
       "title_id": "CUSA20499",
       "type": "game",
       "version": "1.00",
@@ -127,12 +127,12 @@
       "name": "God of War III Remastered Update",
       "title_id": "CUSA01715",
       "type": "update",
-      "version": "1.02",
+      "version": "unknown",
       "pkg_url": "https://huggingface.co/datasets/glm-labs/ENTROPY2/resolve/main/PPCH4/5.2.pkg",
       "sha256": "",
       "size_bytes": 0,
       "enabled": true,
-      "notes": "God of War III Remastered CUSA01715 güncelleme paketi."
+      "notes": "God of War III Remastered CUSA01715 güncelleme paketi. Güncelleme sürümü belirtilmedi."
     },
     {
       "id": "grand-theft-auto-5",
